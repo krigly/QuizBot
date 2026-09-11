@@ -150,6 +150,20 @@ def main(page: ft.Page):
     # ФУНКЦИИ
     # ============================================
 
+    def set_count(n):
+        txt_question_count.value = str(n)
+        page.update()
+
+    preset_row = ft.Row(
+        [
+            ft.Button("3", on_click=lambda e: set_count(3), width=60),
+            ft.Button("5", on_click=lambda e: set_count(5), width=60),
+            ft.Button("10", on_click=lambda e: set_count(10), width=70),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=8,
+    )
+
     def show_loading(show: bool):
         """Показывает/скрывает оверлей загрузки на весь экран"""
         loading_overlay.visible = show
@@ -164,6 +178,15 @@ def main(page: ft.Page):
             txt_status.color = ft.Colors.ORANGE
             page.update()
             return
+        try:
+            count = int(txt_question_count.value)
+            if count < 1 or count > 20:
+                raise ValueError
+        except ValueError:
+            txt_status.value = "⚠️ Введите число от 1 до 20"
+            txt_status.color = ft.Colors.ORANGE
+            page.update()
+            return
 
         show_loading(True)
 
@@ -172,7 +195,7 @@ def main(page: ft.Page):
             try:
                 if client is None:
                     client = initial_client(get_api_key('ODI_API'))
-                result = generate_quiz(text, client)
+                result = generate_quiz(text, client, count)
 
                 if result:
                     questions = result
@@ -466,7 +489,7 @@ def main(page: ft.Page):
                         ft.Icon(ft.Icons.BOLT, size=32, color=PRIMARY),
                         ft.Container(height=8),
                         ft.Text("Быстро", size=15, weight=ft.FontWeight.W_600),
-                        ft.Text("Генерация за 10–30 сек", size=12, color=ft.Colors.GREY_600, text_align=ft.TextAlign.CENTER),
+                        ft.Text("Лучшие параметры для скорости", size=12, color=ft.Colors.GREY_600, text_align=ft.TextAlign.CENTER),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=2,
@@ -545,6 +568,20 @@ def main(page: ft.Page):
         filled=True,
         fill_color=ft.Colors.GREY_50,
         text_size=14,
+    )
+
+    txt_question_count = ft.TextField(
+        value="5",
+        label="Количество вопросов",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        width=200,
+        border_radius=12,
+        border_color=ft.Colors.GREY_300,
+        focused_border_color=PRIMARY,
+        filled=True,
+        fill_color=ft.Colors.GREY_50,
+        text_size=14,
+        text_align=ft.TextAlign.CENTER,
     )
 
     txt_status = ft.Text("", size=13, color=ft.Colors.GREY_600)
@@ -655,6 +692,14 @@ def main(page: ft.Page):
                 ),
                 ft.Container(height=12),
                 txt_input,
+                ft.Container(height=12),
+                ft.Row(
+                    [
+                        txt_question_count,
+                        preset_row
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
                 ft.Container(height=14),
                 btn_generate,
                 ft.Container(height=8),
@@ -719,7 +764,7 @@ def main(page: ft.Page):
                 ),
                 ft.Container(height=8),
                 ft.Text(
-                    "Это может занять 10–30 секунд",
+                    "Это может занять 40 секунд до 3 минут",
                     size=14,
                     color=ft.Colors.GREY_300,
                 ),
